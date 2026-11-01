@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/recent_recall_launcher"
+        android:shortcutId="open_recents"
+        android:shortcutLongLabel="@string/shortcut_long"
+        android:shortcutShortLabel="@string/shortcut_short">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.cowslylabs.recentrecall.ShortcutActivity"
+            android:targetPackage="com.cowslylabs.recentrecall" />
+    </shortcut>
+</shortcuts>
