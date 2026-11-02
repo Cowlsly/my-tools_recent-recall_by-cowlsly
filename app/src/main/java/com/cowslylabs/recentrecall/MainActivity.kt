@@ -29,6 +29,7 @@ import com.cowslylabs.recentrecall.settings.SettingsRepository
 import com.cowslylabs.recentrecall.settings.SharedPrefsStore
 
 class MainActivity : Activity() {
+
     private lateinit var repo: SettingsRepository
     private lateinit var status: TextView
 
@@ -109,7 +110,6 @@ class MainActivity : Activity() {
         }
         col.addView(label("Recent-Recall", 26f, true))
         col.addView(label("Debug build, not a production release."))
-
         status = label("")
         col.addView(status)
         col.addView(button("Open Accessibility settings") {
@@ -133,7 +133,6 @@ class MainActivity : Activity() {
                 update { it.copy(appearance = v) }
             },
         )
-
         val opacityLabel = label("Opacity: ${s.opacityPercent}%")
         col.addView(opacityLabel)
         col.addView(SeekBar(this).apply {
@@ -150,7 +149,6 @@ class MainActivity : Activity() {
                 override fun onStopTrackingTouch(sb: SeekBar?) = Unit
             })
         })
-
         val sizeLabel = label("Size: ${s.sizeDp} dp")
         col.addView(sizeLabel)
         col.addView(SeekBar(this).apply {
@@ -167,7 +165,6 @@ class MainActivity : Activity() {
                 override fun onStopTrackingTouch(sb: SeekBar?) = Unit
             })
         })
-
         col.addView(label("Tap"))
         col.addView(
             spinner(ButtonAction.values().toList(), ButtonAction.values().map { actionLabel(it) }, s.tapAction) { v ->
@@ -183,6 +180,10 @@ class MainActivity : Activity() {
         col.addView(checkbox("Lock button position", s.positionLocked) { cur, c -> cur.copy(positionLocked = c) })
         col.addView(button("Reset button position") { update { it.copy(posX = 1f, posY = 0.6f) } })
 
+        col.addView(label("Privacy", 18f, true))
+        col.addView(label("Hide the button over sensitive screens: permission, install and fingerprint prompts, password managers, authenticators, wallets and banking apps. It matches package names only, so it cannot see inside an app. Use the blocklist for anything it misses. The list is a constant in PackageRules.kt, described in docs/SENSITIVE_SCREENS.md."))
+        col.addView(checkbox("Hide over sensitive screens", s.hideOnSensitive) { cur, c -> cur.copy(hideOnSensitive = c) })
+
         col.addView(label("Which apps show the button", 18f, true))
         col.addView(label("Blocked apps never show it. With no allowed apps it shows over every app that is not blocked. With allowed apps it shows only over those."))
         col.addView(checkbox("Show system apps in the picker", s.showSystemApps) { cur, c -> cur.copy(showSystemApps = c) })
@@ -192,8 +193,7 @@ class MainActivity : Activity() {
         col.addView(label("Launcher", 18f, true))
         col.addView(label("A second launcher icon named Recents opens Recents directly. You can place it on the home screen or dock yourself. It does not replace your launcher's app drawer button."))
         col.addView(button("Add a Recents shortcut to the home screen") { pinShortcut() })
-
-        col.addView(label("Android cannot turn the accessibility service on for you, and it may need switching on again after a restart on some devices. The button hides on the lock screen and over permission and install prompts."))
+        col.addView(label("Android cannot turn the accessibility service on for you, and it may need switching on again after a restart on some devices. The button hides on the lock screen and over sensitive screens."))
         return ScrollView(this).apply { addView(col) }
     }
 
@@ -228,7 +228,7 @@ class MainActivity : Activity() {
         }
         status.text = "Permission status\n" +
             "Accessibility service: $a\n" +
-            "Display over other apps: not needed\n" +
+            "Display over other apps: not needed (the button is an accessibility overlay)\n" +
             "Usage access: not needed\n" +
             "App list access: declared at install, used only by the app rules picker\n" +
             "Network: none"
