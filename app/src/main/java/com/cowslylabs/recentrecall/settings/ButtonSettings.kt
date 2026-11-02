@@ -18,6 +18,8 @@ data class ButtonSettings(
     val posY: Float = 0.6f,
     val showSystemApps: Boolean = false,
     val showHiddenApps: Boolean = false,
+    /** Hide over the sensitive-screen package list (see PackageRules). On by default. */
+    val hideOnSensitive: Boolean = true,
     val allowList: Set<String> = emptySet(),
     val blockList: Set<String> = emptySet(),
 ) {

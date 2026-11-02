@@ -50,27 +50,3 @@ object PickerFilter {
     fun include(isSystem: Boolean, isHidden: Boolean, showSystem: Boolean, showHidden: Boolean): Boolean =
         (!isSystem || showSystem) && (!isHidden || showHidden)
 }
-
-/** Heuristic package lists. Not exhaustive; users can also use the blocklist. */
-object PackageRules {
-    private val ignored = setOf(
-        "android",
-        "com.android.systemui",
-        "com.samsung.android.honeyboard",
-        "com.sec.android.inputmethod",
-        "com.google.android.inputmethod.latin",
-    )
-    private val sensitive = setOf(
-        "com.android.permissioncontroller",
-        "com.google.android.permissioncontroller",
-        "com.android.packageinstaller",
-        "com.google.android.packageinstaller",
-        "com.samsung.android.biometrics.app.setting",
-    )
-
-    /** Windows from these packages do not change which app is considered in front. */
-    fun isIgnored(pkg: String): Boolean = pkg in ignored
-
-    /** The button hides over these (permission, install and biometric prompts). */
-    fun isSensitive(pkg: String?): Boolean = pkg != null && pkg in sensitive
-}

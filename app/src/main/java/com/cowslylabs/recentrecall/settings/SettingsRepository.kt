@@ -18,6 +18,7 @@ class SettingsRepository(val store: KeyValueStore) {
             posY = store.getFloat(K_Y, d.posY).coerceIn(0f, 1f),
             showSystemApps = store.getBoolean(K_SHOW_SYSTEM, d.showSystemApps),
             showHiddenApps = store.getBoolean(K_SHOW_HIDDEN, d.showHiddenApps),
+            hideOnSensitive = store.getBoolean(K_HIDE_SENSITIVE, d.hideOnSensitive),
             allowList = store.getStringSet(K_ALLOW),
             blockList = store.getStringSet(K_BLOCK),
         )
@@ -37,6 +38,7 @@ class SettingsRepository(val store: KeyValueStore) {
                 K_Y to s.posY,
                 K_SHOW_SYSTEM to s.showSystemApps,
                 K_SHOW_HIDDEN to s.showHiddenApps,
+                K_HIDE_SENSITIVE to s.hideOnSensitive,
                 K_ALLOW to s.allowList,
                 K_BLOCK to s.blockList,
             ),
@@ -63,6 +65,7 @@ class SettingsRepository(val store: KeyValueStore) {
         const val K_Y = "pos_y"
         const val K_SHOW_SYSTEM = "show_system_apps"
         const val K_SHOW_HIDDEN = "show_hidden_apps"
+        const val K_HIDE_SENSITIVE = "hide_on_sensitive"
         const val K_ALLOW = "allow_list"
         const val K_BLOCK = "block_list"
     }

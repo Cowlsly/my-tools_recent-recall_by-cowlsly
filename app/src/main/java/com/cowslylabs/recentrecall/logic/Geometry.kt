@@ -15,4 +15,19 @@ object Geometry {
         val m = maxOffset(screen, size)
         return if (m == 0) 0f else clampPx(px, screen, size).toFloat() / m
     }
+
+    /**
+     * Region versions: the button may only sit between [start] and [end] (for example the screen minus
+     * status bar, navigation bar and display cutout). If the region is smaller than the button it sits at [start].
+     */
+    fun clampInRegion(px: Int, start: Int, end: Int, size: Int): Int =
+        px.coerceIn(start, maxOf(start, end - size))
+
+    fun fractionToPxInRegion(f: Float, start: Int, end: Int, size: Int): Int =
+        start + (f.coerceIn(0f, 1f) * maxOf(0, end - start - size)).roundToInt()
+
+    fun pxToFractionInRegion(px: Int, start: Int, end: Int, size: Int): Float {
+        val m = maxOf(0, end - start - size)
+        return if (m == 0) 0f else (clampInRegion(px, start, end, size) - start).toFloat() / m
+    }
 }

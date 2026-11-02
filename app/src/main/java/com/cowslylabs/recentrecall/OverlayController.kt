@@ -14,6 +14,7 @@ import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
+import android.view.WindowInsets
 import android.view.WindowManager
 import android.widget.ImageView
 import com.cowslylabs.recentrecall.logic.Geometry
@@ -26,6 +27,10 @@ import com.cowslylabs.recentrecall.settings.SettingsRepository
 /**
  * Owns the floating button window. It uses TYPE_ACCESSIBILITY_OVERLAY, which an enabled
  * accessibility service may add without the separate "Display over other apps" permission.
+ *
+ * The button is always placed inside the usable area (screen minus system bars and display cutout)
+ * and is re-placed from the saved fraction on every apply(), so rotation, display size and
+ * font size changes cannot leave it off screen.
  */
 class OverlayController(
     private val service: AccessibilityService,
@@ -53,31 +58,41 @@ class OverlayController(
         }
     }
 
-    fun apply(s: ButtonSettings, visible: Boolean) {
+    /** Returns false only when the window could not be added, so the caller can retry. */
+    fun apply(s: ButtonSettings, visible: Boolean): Boolean {
         latest = s
         if (!visible) {
             remove()
-            return
+            return true
         }
         val v = view ?: create().also { view = it }
-        val p = params ?: return
+        val p = params ?: return false
         style(v, s)
         val size = dp(s.sizeDp)
         p.width = size
         p.height = size
         if (!dragging) {
-            val (sw, sh) = screenSize()
-            p.x = Geometry.fractionToPx(s.posX, sw, size)
-            p.y = Geometry.fractionToPx(s.posY, sh, size)
+            val a = area()
+            p.x = Geometry.fractionToPxInRegion(s.posX, a[0], a[2], size)
+            p.y = Geometry.fractionToPxInRegion(s.posY, a[1], a[3], size)
         }
-        try {
+        return try {
             if (v.parent == null) wm.addView(v, p) else wm.updateViewLayout(v, p)
+            true
         } catch (e: RuntimeException) {
             // Window could not be added (for example the service is shutting down).
             view = null
             params = null
             lastAppearance = null
+            false
         }
+    }
+
+    /** Call when rotation, display size or font size changed. Drops any half-finished drag. */
+    fun onConfigurationChanged() {
+        handler.removeCallbacks(longPressRunnable)
+        interpreter.cancel()
+        dragging = false
     }
 
     fun remove() {
@@ -147,9 +162,9 @@ class OverlayController(
                 if (interpreter.move(e.rawX, e.rawY)) {
                     dragging = true
                     handler.removeCallbacks(longPressRunnable)
-                    val (sw, sh) = screenSize()
-                    p.x = Geometry.clampPx(startX + (e.rawX - startRawX).toInt(), sw, p.width)
-                    p.y = Geometry.clampPx(startY + (e.rawY - startRawY).toInt(), sh, p.height)
+                    val a = area()
+                    p.x = Geometry.clampInRegion(startX + (e.rawX - startRawX).toInt(), a[0], a[2], p.width)
+                    p.y = Geometry.clampInRegion(startY + (e.rawY - startRawY).toInt(), a[1], a[3], p.height)
                     try {
                         wm.updateViewLayout(v, p)
                     } catch (ex: RuntimeException) {
@@ -182,22 +197,29 @@ class OverlayController(
     }
 
     private fun savePosition(p: WindowManager.LayoutParams) {
-        val (sw, sh) = screenSize()
+        val a = area()
         repo.savePosition(
-            Geometry.pxToFraction(p.x, sw, p.width),
-            Geometry.pxToFraction(p.y, sh, p.height),
+            Geometry.pxToFractionInRegion(p.x, a[0], a[2], p.width),
+            Geometry.pxToFractionInRegion(p.y, a[1], a[3], p.height),
         )
     }
 
-    private fun screenSize(): Pair<Int, Int> {
+    /** Usable area as [left, top, right, bottom] in screen pixels: screen minus system bars and cutout. */
+    private fun area(): IntArray {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val b = wm.currentWindowMetrics.bounds
-            return b.width() to b.height()
+            val m = wm.currentWindowMetrics
+            val b = m.bounds
+            val i = m.windowInsets.getInsetsIgnoringVisibility(
+                WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout(),
+            )
+            return intArrayOf(b.left + i.left, b.top + i.top, b.right - i.right, b.bottom - i.bottom)
         }
         val dm = DisplayMetrics()
         @Suppress("DEPRECATION")
         wm.defaultDisplay.getRealMetrics(dm)
-        return dm.widthPixels to dm.heightPixels
+        val id = service.resources.getIdentifier("status_bar_height", "dimen", "android")
+        val top = if (id > 0) service.resources.getDimensionPixelSize(id) else 0
+        return intArrayOf(0, top, dm.widthPixels, dm.heightPixels)
     }
 
     private fun dp(v: Int): Int = (v * service.resources.displayMetrics.density).toInt()
