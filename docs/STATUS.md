@@ -16,3 +16,11 @@ Gap-closing commit:
 - Sensitive hiding is by package name only.
 - ANDROID_REQUIREMENTS.md still has rows marked UNVERIFIED.
 - No emulator or physical device testing has been done, including rotation, service rebind and process death.
+
+## Build-readiness review (2026-11-03 AWST)
+
+GitHub Actions run 41367238460 for app commit e5cd71a3c5d2476e066e7931ec90e8cb23c206e9 completed successfully. Its job steps confirm unit tests, Android lint, assembleDebug and APK upload succeeded. Artifact 13107672707 is an unexpired APK ZIP at review time. This is server-side build evidence, not emulator or physical-device validation.
+
+The Gradle wrapper JAR is tracked; the README statement saying it was absent was stale and has been corrected. Automatic builds now include root commits (using the explicitly documented app-candidate fallback while root lacks the project), any file changes including documents, and manual Run workflow. The new workflow needs its own successful run before being treated as verified.
+
+Verdict: ready for a personal debug-install trial; not verified as finished. No app code was changed in this build-automation review. PR #1 stays draft and unmerged pending device checks. Remaining limitations above still apply.

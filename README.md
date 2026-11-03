@@ -21,6 +21,6 @@ A floating button that opens your recent apps with one tap, so you can skip the 
 - No network permission, no analytics, no ads. The service reads only the package name of the window in front.
 
 ## Build
-CI runs unit tests, lint and `assembleDebug` with Gradle 8.7, JDK 17, AGP 8.5.2, Kotlin 1.9.24. The Gradle wrapper jar is not committed yet (see docs/STATUS.md), so build locally with Gradle 8.7 installed or open the project in Android Studio.
+CI runs unit tests, lint and `assembleDebug` with the committed Gradle 8.7 wrapper, JDK 17, AGP 8.5.2 and Kotlin 1.9.24. With Android SDK 34 installed, run `./gradlew testDebugUnitTest lintDebug assembleDebug`. See [automatic build instructions](docs/AUTO_BUILD.md) to build by committing any file or using Run workflow.
 
 See `docs/ANDROID_REQUIREMENTS.md` for the researched Android rules and `docs/STATUS.md` for what is verified and what is not.

@@ -2,7 +2,7 @@ name: Android debug build
 
 on:
   push:
-    branches: [ "feature/**" ]
+    branches: [ "**" ]
   pull_request:
     branches: [ "root" ]
   workflow_dispatch:
@@ -10,11 +10,39 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: android-debug-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      # Until PR #1 is merged, root contains only artwork/docs. Build the candidate
+      # without merging it. Once root has the Android project, this step is skipped.
+      - name: Check out app candidate while root has no Android project
+        if: github.ref == 'refs/heads/root' && hashFiles('app/build.gradle.kts') == ''
+        uses: actions/checkout@v4
+        with:
+          ref: feature/recent-recall-app
+          persist-credentials: false
+      - name: Record exact app source
+        shell: bash
+        run: |
+          test -f app/build.gradle.kts
+          test -f gradle/wrapper/gradle-wrapper.jar
+          {
+            echo "Recent-Recall personal debug build (device testing pending)"
+            echo "App source commit: $(git rev-parse HEAD)"
+            echo "Workflow trigger commit: $GITHUB_SHA"
+            echo "Trigger ref: $GITHUB_REF"
+            echo "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          } | tee BUILD-INFO.txt
+          cat BUILD-INFO.txt >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -29,17 +57,34 @@ jobs:
         run: ./gradlew --no-daemon lintDebug
       - name: Build debug APK
         run: ./gradlew --no-daemon assembleDebug
+      - name: Prepare APK download and checksum
+        run: |
+          mkdir -p apk-download
+          cp app/build/outputs/apk/debug/app-debug.apk apk-download/
+          cp BUILD-INFO.txt apk-download/
+          cd apk-download
+          sha256sum app-debug.apk > SHA256SUMS.txt
       - name: Upload debug APK
+        id: apk
         uses: actions/upload-artifact@v4
         with:
           name: recent-recall-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          path: apk-download/
+          retention-days: 14
           if-no-files-found: error
+      - name: Link APK download
+        env:
+          ARTIFACT_URL: ${{ steps.apk.outputs.artifact-url }}
+        run: |
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "[Download APK ZIP]($ARTIFACT_URL) — unzip and install app-debug.apk. GitHub sign-in is required." >> "$GITHUB_STEP_SUMMARY"
       - name: Upload reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: reports
+          retention-days: 7
           path: |
             app/build/reports/lint-results-debug.html
             app/build/reports/tests/testDebugUnitTest
+            app/build/test-results/testDebugUnitTest
