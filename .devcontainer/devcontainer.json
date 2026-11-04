@@ -1,0 +1,39 @@
+{
+  "name": "Cowlsly Labs • my-tools_recent-recall_by-cowlsly • Mobile",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "17",
+      "installGradle": false,
+      "installMaven": false
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.fontSize": 18,
+        "terminal.integrated.fontSize": 19,
+        "window.zoomLevel": 0.5,
+        "editor.wordWrap": "on",
+        "editor.minimap.enabled": false,
+        "editor.stickyScroll.enabled": false,
+        "editor.scrollBeyondLastLine": false,
+        "editor.bracketPairColorization.enabled": true,
+        "breadcrumbs.enabled": false,
+        "workbench.startupEditor": "none",
+        "workbench.editor.enablePreview": false,
+        "files.autoSave": "afterDelay",
+        "files.autoSaveDelay": 1800,
+        "terminal.integrated.scrollback": 5000,
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "git.autofetch": false,
+        "telemetry.telemetryLevel": "off"
+      },
+      "extensions": [
+        "redhat.java"
+      ]
+    }
+  },
+  "postCreateCommand": "git --version && node --version && gh --version"
+}
