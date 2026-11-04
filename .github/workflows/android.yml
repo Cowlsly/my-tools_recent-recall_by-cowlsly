@@ -23,9 +23,9 @@ jobs:
         with:
           persist-credentials: false
       # Until PR #1 is merged, root contains only artwork/docs. Build the candidate
-      # without merging it. Once root has the Android project, this step is skipped.
+      # without merging it. Once the checked-out ref has the Android project, this step is skipped.
       - name: Check out app candidate while root has no Android project
-        if: github.ref == 'refs/heads/root' && hashFiles('app/build.gradle.kts') == ''
+        if: hashFiles('app/build.gradle.kts') == ''
         uses: actions/checkout@v4
         with:
           ref: feature/recent-recall-app
