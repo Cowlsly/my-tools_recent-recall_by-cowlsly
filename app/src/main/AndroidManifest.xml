@@ -10,10 +10,10 @@
 
     <application
         android:allowBackup="false"
-        android:icon="@drawable/recent_recall_launcher"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+        android:theme="@style/Theme.RecentRecall">
 
         <activity
             android:name=".MainActivity"
@@ -44,7 +44,7 @@
         <activity-alias
             android:name=".RecentsLauncherAlias"
             android:exported="true"
-            android:icon="@drawable/recent_recall_launcher"
+            android:icon="@mipmap/ic_launcher"
             android:label="@string/alias_label"
             android:targetActivity=".ShortcutActivity">
             <intent-filter>
