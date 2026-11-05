@@ -46,16 +46,29 @@ class MainActivity : Activity() {
 
     private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
 
-    private fun label(t: String, sp: Float = 15f, bold: Boolean = false): TextView = TextView(this).apply {
+    private fun label(t: String, sp: Float = 16f, bold: Boolean = false): TextView = TextView(this).apply {
         text = t
         textSize = sp
         if (bold) setTypeface(typeface, Typeface.BOLD)
         setPadding(0, dp(8), 0, dp(4))
     }
 
+    /** Section title in the accent colour, which switches for dark mode. */
+    private fun header(t: String): TextView = label(t, 20f, true).apply {
+        setTextColor(getColor(R.color.rr_accent))
+        setPadding(0, dp(24), 0, dp(4))
+    }
+
+    /** Smaller, softer text that explains the control above or below it. */
+    private fun helper(t: String): TextView = label(t, 14f).apply {
+        alpha = 0.8f
+        setPadding(0, 0, 0, dp(8))
+    }
+
     private fun button(t: String, onClick: () -> Unit): Button = Button(this).apply {
         text = t
         isAllCaps = false
+        minHeight = dp(48)
         setOnClickListener { onClick() }
     }
 
@@ -66,12 +79,15 @@ class MainActivity : Activity() {
     private fun checkbox(t: String, checked: Boolean, change: (ButtonSettings, Boolean) -> ButtonSettings): CheckBox =
         CheckBox(this).apply {
             text = t
+            textSize = 16f
+            minHeight = dp(48)
             isChecked = checked
             setOnCheckedChangeListener { _, c -> update { change(it, c) } }
         }
 
     private fun <T> spinner(values: List<T>, labels: List<String>, current: T, onPick: (T) -> Unit): Spinner {
         val sp = Spinner(this)
+        sp.minimumHeight = dp(48)
         sp.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, labels)
         var idx = values.indexOf(current).coerceAtLeast(0)
         sp.setSelection(idx)
@@ -108,22 +124,28 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(16), dp(24), dp(16), dp(24))
         }
-        col.addView(label("Recent-Recall", 26f, true))
-        col.addView(label("Debug build, not a production release."))
+        col.addView(label("Recent-Recall", 28f, true))
+        col.addView(helper("Debug build, not a production release."))
+
+        col.addView(header("Permission status"))
         status = label("")
         col.addView(status)
+        col.addView(helper("Android does not let an app switch its own accessibility service on. Turn it on here, then come back."))
         col.addView(button("Open Accessibility settings") {
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         })
+        col.addView(helper("If Android says the setting is restricted, open App info, tap the three dots, choose Allow restricted settings, then try again."))
         col.addView(button("Open App info (Allow restricted settings)") {
             startActivity(
                 Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")),
             )
         })
 
-        col.addView(label("Button", 18f, true))
+        col.addView(header("Button"))
         col.addView(Switch(this).apply {
             text = "Show floating button"
+            textSize = 16f
+            minHeight = dp(48)
             isChecked = s.enabled
             setOnCheckedChangeListener { _, c -> update { it.copy(enabled = c) } }
         })
@@ -180,20 +202,21 @@ class MainActivity : Activity() {
         col.addView(checkbox("Lock button position", s.positionLocked) { cur, c -> cur.copy(positionLocked = c) })
         col.addView(button("Reset button position") { update { it.copy(posX = 1f, posY = 0.6f) } })
 
-        col.addView(label("Privacy", 18f, true))
-        col.addView(label("Hide the button over sensitive screens: permission, install and fingerprint prompts, password managers, authenticators, wallets and banking apps. It matches package names only, so it cannot see inside an app. Use the blocklist for anything it misses. The list is a constant in PackageRules.kt, described in docs/SENSITIVE_SCREENS.md."))
+        col.addView(header("Privacy"))
         col.addView(checkbox("Hide over sensitive screens", s.hideOnSensitive) { cur, c -> cur.copy(hideOnSensitive = c) })
+        col.addView(helper("Hides the button over permission, install and fingerprint prompts, password managers, authenticators, wallets and banking apps. It matches app names only, so it cannot see inside an app. Use the blocked list for anything it misses. Details are in docs/SENSITIVE_SCREENS.md."))
 
-        col.addView(label("Which apps show the button", 18f, true))
-        col.addView(label("Blocked apps never show it. With no allowed apps it shows over every app that is not blocked. With allowed apps it shows only over those."))
+        col.addView(header("Which apps show the button"))
+        col.addView(helper("Blocked apps never show it. With no allowed apps it shows over every app that is not blocked. With allowed apps it shows only over those."))
         col.addView(checkbox("Show system apps in the picker", s.showSystemApps) { cur, c -> cur.copy(showSystemApps = c) })
         col.addView(checkbox("Show hidden apps in the picker", s.showHiddenApps) { cur, c -> cur.copy(showHiddenApps = c) })
+        col.addView(helper("The picker list may be incomplete. Android limits which apps an app can see, and some phones or work profiles limit it further. Saved rules keep working for apps that are not listed."))
         col.addView(button("Edit app rules") { startActivity(Intent(this, AppRulesActivity::class.java)) })
 
-        col.addView(label("Launcher", 18f, true))
-        col.addView(label("A second launcher icon named Recents opens Recents directly. You can place it on the home screen or dock yourself. It does not replace your launcher's app drawer button."))
+        col.addView(header("Launcher"))
+        col.addView(helper("A second launcher icon named Recents opens Recents directly. You can place it on the home screen or dock yourself. It does not replace your launcher's app drawer button."))
         col.addView(button("Add a Recents shortcut to the home screen") { pinShortcut() })
-        col.addView(label("Android cannot turn the accessibility service on for you, and it may need switching on again after a restart on some devices. The button hides on the lock screen and over sensitive screens."))
+        col.addView(helper("The button hides on the lock screen and over sensitive screens. On some phones the accessibility service needs switching on again after a restart."))
         return ScrollView(this).apply { addView(col) }
     }
 
@@ -222,15 +245,15 @@ class MainActivity : Activity() {
         val running = RecentRecallService.instance != null
         val enabled = serviceEnabledInSettings()
         val a = when {
-            running -> "ON and running"
-            enabled -> "ON in Settings, not connected yet"
-            else -> "OFF (turn it on in Accessibility settings)"
+            running -> "On and running"
+            enabled -> "On in Settings, not connected yet"
+            else -> "Off. Turn it on in Accessibility settings"
         }
-        status.text = "Permission status\n" +
-            "Accessibility service: $a\n" +
-            "Display over other apps: not needed (the button is an accessibility overlay)\n" +
+        status.text = "Accessibility service: $a\n" +
+            "This is the one permission the button needs. It lets the button open Recents. It reads only the name of the app in front, never what is on screen.\n\n" +
+            "Display over other apps: not needed\n" +
             "Usage access: not needed\n" +
-            "App list access: declared at install, used only by the app rules picker\n" +
-            "Network: none"
+            "App list access: used only by the app rules picker\n" +
+            "Network: none, nothing leaves your phone"
     }
 }
