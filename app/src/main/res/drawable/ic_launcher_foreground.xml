@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Recall arrow ring, inside the 66dp safe zone -->
+    <path
+        android:pathData="M70.7,34.1 A26,26 0 1 0 78.4,62.9"
+        android:strokeColor="#E9A7A7"
+        android:strokeWidth="6"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#E9A7A7"
+        android:pathData="M80.8,56.3 L84,64.9 L72.8,60.9 Z" />
+    <!-- Gem -->
+    <path
+        android:fillColor="#C9566E"
+        android:pathData="M54,43 L63,48.5 L63,59.5 L54,65 L45,59.5 L45,48.5 Z" />
+    <path
+        android:pathData="M45,48.5 L54,54 L63,48.5 M54,54 L54,65"
+        android:strokeColor="#F3C4C4"
+        android:strokeWidth="1.2"
+        android:strokeLineJoin="round" />
+</vector>

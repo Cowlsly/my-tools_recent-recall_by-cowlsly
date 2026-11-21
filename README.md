@@ -1,19 +1,26 @@
 # Recent-Recall
 
-A personal Android floating button for opening recent apps without swiping.
+A floating button that opens your recent apps with one tap, so you can skip the gesture fuss. Built for one phone (Samsung Galaxy A17 5G) and shared as a debug build.
 
-## Build or download on your phone
+**This is a debug build, not a production release.** It is unsigned for release, not on Google Play, and has only had source review, unit tests and CI. It has not been tested on a physical device yet.
 
-Open [Actions > Android debug build](https://github.com/Cowlsly/my-tools_recent-recall_by-cowlsly/actions/workflows/android.yml), then choose **Run workflow** on `root`. Editing and committing any document on `root` also starts a build automatically.
+## Install on a Samsung phone
+1. Download the `recent-recall-debug-apk` artifact from the latest GitHub Actions run, unzip it and install `app-debug.apk` (allow installs from your browser or Files app when asked).
+2. Sideloaded apps are blocked from accessibility by default. Open Settings > Apps > Recent-Recall > three dots (top right) > Allow restricted settings.
+3. Open Settings > Accessibility > Installed apps > Recent-Recall and turn it on. Confirm the prompt.
+4. Open Recent-Recall to adjust the button. Android does not let an app turn this on for you, and it may need turning on again after a restart on some devices.
 
-When the run is green, download **recent-recall-debug-apk** under Artifacts, unzip it and install `app-debug.apk`. The ZIP also records the exact app source commit and APK checksum. GitHub sign-in is required for artifact downloads.
+## What it does
+- Floating button drawn as an accessibility overlay, so "Display over other apps" is not needed.
+- Tap and long press can open Recents, Recent-Recall settings, Quick Settings (Android 12+) or the notification shade.
+- Icon (two styles) or plain dot, adjustable opacity and size, drag to move (only after a deliberate movement), lock position, position saved.
+- Per-app rules. Precedence: a blocked app never shows the button (block wins over allow). If the allow list is empty the button shows over every app that is not blocked. If it has entries, only those apps show it.
+- Settings "Show system apps" and "Show hidden apps" (both off by default, saved). They only change what the picker lists. Saved rules for system or hidden apps stay active when they are off. The picker says its list may be incomplete.
+- A second launcher icon, "Recents", and a long-press shortcut open Recents directly. You can put the icon on your dock yourself. It does not replace your launcher's app drawer button.
+- Hides on the lock screen, when the screen is off, and over permission, install and biometric prompts.
+- No network permission, no analytics, no ads. The service reads only the package name of the window in front.
 
-## Current status
+## Build
+CI runs unit tests, lint and `assembleDebug` with the committed Gradle 8.7 wrapper, JDK 17, AGP 8.5.2 and Kotlin 1.9.24. With Android SDK 34 installed, run `./gradlew testDebugUnitTest lintDebug assembleDebug`. See [automatic build instructions](docs/AUTO_BUILD.md) to build by committing any file or using Run workflow.
 
-The Android source is on [draft PR #1](https://github.com/Cowlsly/my-tools_recent-recall_by-cowlsly/pull/1), branch `feature/recent-recall-app`. This default branch has artwork and build instructions. Until the app project is merged here, the workflow explicitly builds that candidate branch and records its commit; it does not merge it. After the project is merged, the same workflow builds root itself automatically.
-
-App commit `e5cd71a3c5d2476e066e7931ec90e8cb23c206e9` passed unit tests, Android lint and APK packaging in [run 41367238460](https://github.com/Cowlsly/my-tools_recent-recall_by-cowlsly/actions/runs/41367238460). The updated workflow requires its own successful run. This is ready for a personal debug-install trial, not a claim that physical-device testing is complete.
-
-See [build instructions and limitations](docs/AUTO_BUILD.md) and [app setup instructions](https://github.com/Cowlsly/my-tools_recent-recall_by-cowlsly/blob/feature/recent-recall-app/README.md). Enable Recent-Recall in Android Accessibility after installation; root and Shizuku are not required.
-
-The app's name is “Recent-Recall”, as if recalling recent spells.
+See `docs/ANDROID_REQUIREMENTS.md` for the researched Android rules and `docs/STATUS.md` for what is verified and what is not.
